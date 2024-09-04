@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(error.message);
             }, {
                 enableHighAccuracy: true,
-                timeout: 15000,
+                timeout: 5000,
                 maximumAge: 0
             });
         });
@@ -49,7 +49,7 @@ socket.on('new-location', (data) => {
 
 socket.on('user-disconnected', (id) => {
     if (markers[id]) {
-        markers[id].remove();
+       map.removeLayer(markers[id]);
         delete markers[id];
     }
 });
