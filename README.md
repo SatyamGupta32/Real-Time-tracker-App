@@ -57,7 +57,7 @@ The Real-Time Tracker App is a web application that allows users to track and vi
 - **`views/index.ejs`**: EJS template for rendering the main web page.
 
 ## hosting by:-
-Render - https://dashboard.render.com/
+Render - https://render.com/
 
 ## Link for my Website:-
 https://real-time-tracker-app-62kp.onrender.com
