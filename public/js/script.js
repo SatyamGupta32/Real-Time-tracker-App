@@ -1,35 +1,55 @@
 const socket = io();
 
-if (navigator.geolocation) {
-    navigator.geolocation.watchPosition((poistion) => {
-        const { latitude, longitude } = poistion.coords;
-        socket.emit('send-location', { latitude, longitude });
-    }, (error) => {
-        console.error(error);
-    },
-        {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        }
-    )
-}
+// Initialize the map
+const map = L.map('map').setView([0, 0], 13);
 
-const map = L.map('map').setView([0, 0], 18);
-
+// Add a tile layer to the map
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
     subdomains: ['a', 'b', 'c']
 }).addTo(map);
 
+// Store markers by socket ID
 const markers = {};
+
+// Request geolocation only in response to a user gesture
+document.addEventListener('DOMContentLoaded', () => {
+    const startTrackingButton = document.getElementById('start-tracking');
+    
+    if (navigator.geolocation) {
+        startTrackingButton.addEventListener('click', () => {
+            navigator.geolocation.watchPosition((position) => {
+                const { latitude, longitude } = position.coords;
+                socket.emit('send-location', { latitude, longitude });
+            }, (error) => {
+                console.error(error);
+            }, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            });
+        });
+    }
+});
 
 socket.on('new-location', (data) => {
     const { id, latitude, longitude } = data;
-    map.setView([latitude, longitude]);
-    if(markers[id]){
-        markers[id].setLatLng([latitude,longitude]);
-    }else{
+
+    if (markers[id]) {
+        // Update marker position
+        markers[id].setLatLng([latitude, longitude]);
+    } else {
+        // Create a new marker
         markers[id] = L.marker([latitude, longitude]).addTo(map);
+
+        // Center the map on the new marker
+        map.setView([latitude, longitude]);
     }
-})
+});
+
+socket.on('user-disconnected', (id) => {
+    if (markers[id]) {
+        markers[id].remove();
+        delete markers[id];
+    }
+});
